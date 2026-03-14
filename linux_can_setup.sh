@@ -17,11 +17,11 @@ echo "════════════════════════�
 
 # 1. Install system packages
 echo "[1/4] Installing system packages..."
-dnf install -y python3-pip can-utils 2>/dev/null || true
+sudo dnf install -y can-utils 2>/dev/null
 
 # 2. Install python-can
 echo "[2/4] Installing python-can..."
-pip3 install python-can 2>/dev/null || pip3 install python-can --break-system-packages
+uv add python-can 2>/dev/null || pip3 install python-can --break-system-packages
 
 # 3. Check CANable2 is connected
 echo "[3/4] Looking for CANable2..."
