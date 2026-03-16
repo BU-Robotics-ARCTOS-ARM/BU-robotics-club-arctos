@@ -90,6 +90,7 @@ def send_cmd(bus, can_id, data, expect_response=True):
 
 # ─── Command Helpers ────────────────────────────────────────────────────────
 
+'''
 def read_encoder(bus, can_id):
     """Read cumulative multi-turn encoder value (cmd 0x31)."""
     resp = send_cmd(bus, can_id, [0x31])
@@ -101,7 +102,23 @@ def read_encoder(bus, can_id):
         print(f"  → Encoder value: {value}  ({turns:.3f} turns)")
         return value
     return None
-
+'''
+def read_encoder(bus, can_id):
+    """Read cumulative encoder value converted into position(deg)"""
+    resp = send_cmd(bus, can_id, [0x31])
+    if resp and resp[0] == 0x31:
+        # Bytes 1-6 = int48 value, byte 7 = CRC
+        rawCumulativeByte = bytes(resp[1:7])
+        rawCumulativeInt = int.from_bytes(rawCumulativeByte, 'big', signed=True)
+        encoderRawRange = int("0x4000", 16)
+        turns = rawCumulativeInt / encoderRawRange
+        # Calculating position in degree
+        rawPosition = rawCumulativeInt % encoderRawRange
+        position_deg = (rawPosition/encoderRawRange)* 360
+        print(f"  → Encoder value: {rawCumulativeInt}  ({turns:.3f} turns)")
+        print(f"Current position(deg): {position_deg}")
+        return position_deg
+    return None
 
 def read_speed(bus, can_id):
     """Read real-time motor speed in RPM (cmd 0x32)."""

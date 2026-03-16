@@ -39,7 +39,6 @@ killall slcand 2>/dev/null || true
 ip link set can0 down 2>/dev/null || true
 
 slcand -o -c -${SLCAN_SPEED} ${SERIAL_DEV} can0
-sleep 0.5
 ip link set can0 up
 
 echo ""
