@@ -8,8 +8,8 @@ How to contribute to this project. Read this before writing any code.
 
 1. Read `DEV_QUICKSTART.md` and get your environment working
 2. Read `ARCHITECTURE.md` to understand where your code belongs
-3. Check `TODO.md` for available tasks
-4. Claim a task
+3. Check the [TODO Board](https://github.com/orgs/BU-Robotics-ARCTOS-ARM/projects/4) for available tasks
+4. Assign yourself to a task on the board
 
 ---
 
