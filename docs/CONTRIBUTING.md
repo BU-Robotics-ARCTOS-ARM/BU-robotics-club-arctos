@@ -40,7 +40,7 @@ Examples:
 
 Personal test/experiment branches can use any name.
 
-### Daily Workflow
+### Workflow
 
 ```bash
 # 1. Make sure main is up to date
@@ -59,6 +59,8 @@ git push origin feat/can-interface
 
 # 5. Open a Pull Request on GitHub when ready for review
 ```
+
+> **Note:** This process is subject to change.
 
 ### Commit Messages
 
@@ -89,8 +91,19 @@ Add emergency stop keybinding (closes #12)
 ### Pull Requests
 
 - All changes go through pull requests. Never push directly to main.
-- Write a short description of what changed and why.
-- Reviews are encouraged but not required.
+- No required reviews — merge your own PR when you're ready.
+- Reviews are welcome but optional. Tag a teammate if you want a second look.
+- Use **squash merge** to keep `main` history clean (one commit per PR).
+- Delete your branch after merging.
 - Keep PRs small and focused. One feature or fix per PR.
+- Write a short description of what changed and why.
+
+> **Note:** This process is subject to change.
+
+#### GitHub Repo Settings
+
+Set these once in **Settings > General > Pull Requests**:
+- Allow **squash merging** only (disable merge commits and rebase)
+- Enable **Automatically delete head branches**
 
 ---
