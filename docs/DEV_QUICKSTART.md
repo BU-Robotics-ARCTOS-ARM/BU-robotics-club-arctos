@@ -1,6 +1,6 @@
 # Quickstart — Development Setup
 
-> This is my minimal recommended Python development setup for this repo. These are just recommendations. Use whatever tools and settings you prefer. I cannot gurantee nothing breaks, especially on Windows. I take no responsibility for damage.
+> This is my minimal recommended Python development setup for this repo. These are just recommendations. Use whatever tools and settings you prefer. I cannot guarantee nothing breaks, especially on Windows. I take no responsibility for damage.
 
 
 ## 1. Open a terminal
@@ -24,7 +24,7 @@ cd BU-robotics-club-arctos
 
 ## 3. Install uv and sync dependencies
 
-`uv` is a Python tool that replaces `pip` and `venv`. It ensures everyone on the team uses the same Python version and packages, so code runs the same on every machine.
+`uv` is a Python tool that replaces `pip` and `venv`. It ensures everyone uses the same Python version and packages, so code runs the same on every machine.
 
 ### Linux / macOS
 
@@ -61,12 +61,12 @@ If this prints a Python version, you're good to go.
 VS Code is one of the most popular code editors. The Python extension adds language support (autocomplete, debugging, etc.). Ruff is a Python linter and formatter, basically automatically makes the code clean and consistent.
 
 1. Download and install VS Code: [code.visualstudio.com](https://code.visualstudio.com/)
-2. Install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) — open VS Code, go to the Extensions sidebar (`Ctrl+Shift+X`), search "Python", and install the one by Microsoft.
-3. Install the [Ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) — search "Ruff" in Extensions and install it.
+2. Install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python). Open VS Code, go to the Extensions sidebar (`Ctrl+Shift+X`), search "Python", and install the one by Microsoft.
+3. Install the [Ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff). Search "Ruff" in Extensions and install it.
 4. Open the project folder in VS Code (`File > Open Folder`).
 5. Select the Python interpreter: `Ctrl+Shift+P` > **Python: Select Interpreter** > choose the `.venv` interpreter (`.venv/bin/python` on Linux/macOS, `.venv\Scripts\python.exe` on Windows).
    - This tells VS Code which Python to use for running code, autocomplete, and debugging. It should point to the virtual environment so you get the correct packages.
-6. Recommended workspace settings — create `.vscode/settings.json`:
+6. Recommended workspace settings. Create `.vscode/settings.json`:
    - These settings tell VS Code to auto-format your Python files with Ruff on save and to use pytest for running tests.
 
 ```json
