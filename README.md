@@ -58,7 +58,7 @@ For dev setup instructions, see **[DEV_QUICKSTART.md](docs/DEV_QUICKSTART.md)**.
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Software layers, folder structure, data flow |
 | [arctos_arm_specifications.md](docs/arctos_arm_specifications.md) | Hardware reference — CAN commands, gear ratios, DH parameters, wiring |
 | [CONTRIBUTING.md](docs/CONTRIBUTING.md) | Git workflow, code style, pull requests, testing |
-| [TODO.md](docs/TODO.md) | Task board — claim a task and get building |
+| [TODO Board](https://github.com/orgs/BU-Robotics-ARCTOS-ARM/projects/4) | Task board — claim a task and get building |
 
 ---
 
@@ -140,7 +140,7 @@ Hardware tests are in `scripts/` and require the physical arm to be connected an
 
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for git workflow, code style, and pull request process.
 
-Check [TODO.md](docs/TODO.md) for available tasks.
+Check the [TODO Board](https://github.com/orgs/BU-Robotics-ARCTOS-ARM/projects/4) for available tasks.
 
 ---
 
