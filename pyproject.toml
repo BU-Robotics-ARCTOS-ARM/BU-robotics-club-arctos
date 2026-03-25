@@ -4,4 +4,7 @@ version = "0.1.0"
 description = "BU Robotics Club - Custom Python control software for Arctos"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["python-can"]
+dependencies = [
+    "pytest>=9.0.2",
+    "python-can",
+]
