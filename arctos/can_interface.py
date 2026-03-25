@@ -1,7 +1,6 @@
 """Layer 1: Raw CAN bus send/receive via python-can."""
 import os
 import time
-import struct
 import subprocess
 import argparse
 import can
@@ -13,25 +12,35 @@ DEFAULT_INTERFACE = "socketcan" # Linux SocketCAN
 DEFAULT_CHANNEL   = "vcan0"
 RECV_TIMEOUT      = 1.0        # seconds
 
-#remove this and put into motor driver
-# # ─── CRC Calculation ────────────────────────────────────────────────────────
-# def calc_crc(can_id, data_bytes):
-#     """CHECKSUM 8-bit: (CAN_ID + sum of all data bytes) & 0xFF"""
-#     return (can_id + sum(data_bytes)) & 0xFF
-
 # ─── CAN Send / Receive ────────────────────────────────────────────────────
 def open_canbus(channel=DEFAULT_CHANNEL, interface=DEFAULT_INTERFACE, bitrate=DEFAULT_BITRATE):
     """Open and return a CAN bus connection."""
     print(f"[*] Opening CAN bus: interface={interface}, channel={channel}")
     return can.interface.Bus(channel=channel, interface=interface, bitrate=bitrate)
 
-def send_cmd(bus, can_id, data, expect_response=True):
+
+def awaitresponse(bus, can_id, timeout=RECV_TIMEOUT):
     """
-    Send a CAN frame with auto-appended CRC.
-    Returns the response data bytes (excluding CRC), or None on timeout.
+    Wait for a CAN response matching the given CAN ID.
+    Returns the response data bytes as a list, or None on timeout.
     """
-    crc = calc_crc(can_id, data)
-    payload = list(data) + [crc]
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        resp = bus.recv(timeout=timeout)
+        if resp and resp.arbitration_id == can_id:
+            rdata = list(resp.data)
+            print(f"  RX ← ID=0x{resp.arbitration_id:03X}  Data=[{' '.join(f'{b:02X}' for b in rdata)}]")
+            return rdata
+    print("  RX ← (no response / timeout)")
+    return None
+
+
+def send(bus, can_id, data, expect_response=True):
+    """
+    Send a CAN frame.
+    Returns the response data bytes, or None on timeout.
+    """
+    payload = list(data)
 
     msg = can.Message(
         arbitration_id=can_id,
@@ -45,17 +54,10 @@ def send_cmd(bus, can_id, data, expect_response=True):
     if not expect_response:
         return None
 
-    # Wait for response from same CAN ID
-    deadline = time.time() + RECV_TIMEOUT
-    while time.time() < deadline:
-        resp = bus.recv(timeout=RECV_TIMEOUT)
-        if resp and resp.arbitration_id == can_id:
-            rdata = list(resp.data)
-            print(f"  RX ← ID=0x{resp.arbitration_id:03X}  Data=[{' '.join(f'{b:02X}' for b in rdata)}]")
-            return rdata
-    print("  RX ← (no response / timeout)")
-    return None
+    return awaitresponse(bus, can_id)
 
-
-
+def close_canbus(bus):
+    """Close the CAN bus connection."""
+    print("[*] Closing CAN bus")
+    bus.shutdown()
 
