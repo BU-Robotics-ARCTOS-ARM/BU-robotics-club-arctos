@@ -1,12 +1,10 @@
 """Layer 1: Raw CAN bus send/receive via python-can."""
 import os
-import sys
 import time
 import struct
 import subprocess
 import argparse
 import can
-
 
 # ─── Configuration ──────────────────────────────────────────────────────────
 DEFAULT_CAN_ID    = 0x01       # Slave CAN ID (set on motor OLED: CanID)
@@ -15,23 +13,17 @@ DEFAULT_INTERFACE = "socketcan" # Linux SocketCAN
 DEFAULT_CHANNEL   = "vcan0"
 RECV_TIMEOUT      = 1.0        # seconds
 
-# ─── CRC Calculation ────────────────────────────────────────────────────────
-def calc_crc(can_id, data_bytes):
-    """CHECKSUM 8-bit: (CAN_ID + sum of all data bytes) & 0xFF"""
-    return (can_id + sum(data_bytes)) & 0xFF
+#remove this and put into motor driver
+# # ─── CRC Calculation ────────────────────────────────────────────────────────
+# def calc_crc(can_id, data_bytes):
+#     """CHECKSUM 8-bit: (CAN_ID + sum of all data bytes) & 0xFF"""
+#     return (can_id + sum(data_bytes)) & 0xFF
 
 # ─── CAN Send / Receive ────────────────────────────────────────────────────
-print(f"[*] Opening CAN bus: interface={DEFAULT_INTERFACE}, channel={DEFAULT_CHANNEL}")
-bus1
-
-try:
-    bus1 = can.interface.Bus(channel=DEFAULT_CHANNEL, interface=DEFAULT_INTERFACE, bitrate = DEFAULT_BITRATE)
-except Exception as e:
-    print(f"[!] Failed to open CAN bus: {e}")
-    sys.exit(1)
-
-def open_canbus(channel internface. .. ):
-    bus1 = can.interface.Bus(channel=DEFAULT_CHANNEL, interface=DEFAULT_INTERFACE, bitrate = DEFAULT_BITRATE)
+def open_canbus(channel=DEFAULT_CHANNEL, interface=DEFAULT_INTERFACE, bitrate=DEFAULT_BITRATE):
+    """Open and return a CAN bus connection."""
+    print(f"[*] Opening CAN bus: interface={interface}, channel={channel}")
+    return can.interface.Bus(channel=channel, interface=interface, bitrate=bitrate)
 
 def send_cmd(bus, can_id, data, expect_response=True):
     """
