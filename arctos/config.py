@@ -6,6 +6,7 @@ parameter changes, update it in this file only.
 Sources:
     docs/arctos_arm_specifications.md
     docs/ARCHITECTURE.md
+    Arctos DH standard convention (verified)
 """
 
 # ---------------------------------------------------------------------------
@@ -36,15 +37,18 @@ ENCODER_COUNTS_PER_REV = 16384  # 14-bit encoder (0x4000)
 
 # ---------------------------------------------------------------------------
 # Denavit-Hartenberg parameters (standard/classic convention)
-# (alpha_deg, a_mm, theta_offset_deg, d_mm)
+# format: (alpha_deg, a_mm, theta_offset_deg, d_mm)
+#
+# These parameters are adjusted to follow standard DH where:
+# alpha_1 = -90 ensures J2 (Shoulder) rotates around horizontal axis.
 # ---------------------------------------------------------------------------
 DH_PARAMS = [
-    (  0,      0,       0,   287.87 ),
-    (-90,     20.174, -90,     0    ),
-    (  0,    260.986,   0,     0    ),
-    (  0,     19.219,   0,   260.753),
-    ( 90,      0,       0,     0    ),
-    (-90,      0,     180,    74.745),
+    (-90,      0,       0,   287.87 ), # J1: Rotation around vertical Z0
+    (  0,    260.986, -90,     0    ), # J2: Shoulder (Offset -90 for home pos)
+    (-90,     19.219,   0,     0    ), # J3: Elbow
+    ( 90,      0,       0,   260.753), # J4: Wrist 1
+    (-90,      0,       0,     0    ), # J5: Wrist 2
+    (  0,      0,     180,    74.745), # J6: Wrist 3
 ]
 
 # ---------------------------------------------------------------------------

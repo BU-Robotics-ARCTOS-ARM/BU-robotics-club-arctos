@@ -4,4 +4,9 @@ version = "0.1.0"
 description = "BU Robotics Club - Custom Python control software for Arctos"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["python-can"]
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.3",
+    "python-can",
+    "scipy>=1.17.1",
+]
