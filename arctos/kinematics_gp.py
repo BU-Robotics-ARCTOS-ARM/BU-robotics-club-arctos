@@ -2,12 +2,9 @@
 
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Optional
-
 
 @dataclass
 class Pose:
-    """End effector pose in cartesian space (XYZ + orientation)."""
     x: float
     y: float
     z: float
@@ -15,115 +12,107 @@ class Pose:
     pitch: float
     yaw: float
 
-    def __repr__(self) -> str:
-        return (f"Pose(x={self.x:0.2f}, y={self.y:0.2f}, z={self.z:0.2f}, "
-                f"roll={self.roll:0.2f}, pitch={self.pitch:0.2f}, yaw={self.yaw:0.2f})")
-
-
 class Kinematics:
-    """Calculates forward and inverse kinematics using DH parameters."""
+    def __init__(self, dh_params: list[list[float]]):
+        self.dh_table = np.array(dh_params, dtype=float)
+        
+        # Convert static alpha and theta offset to radians
+        self.dh_table[:, 0] = np.radians(self.dh_table[:, 0]) 
+        self.dh_table[:, 2] = np.radians(self.dh_table[:, 2]) 
 
-    def __init__(self, dh_params: List[tuple]):
-        """
-        Initialize with DH parameter table.
-        Each row is (alpha_deg, a_mm, theta_offset_deg, d_mm).
-        """
-        self.dh_params = dh_params
-
-    @staticmethod
-    def get_dh_matrix(theta: float, d: float, a: float, alpha: float) -> np.ndarray:
-        """
-        Calculates the transformation matrix for a single link using standard DH.
-        theta: joint angle (radians)
-        d: link offset (mm)
-        a: link length (mm)
-        alpha: link twist (radians)
-        """
-        c_theta = np.cos(theta)
-        s_theta = np.sin(theta)
-        c_alpha = np.cos(alpha)
-        s_alpha = np.sin(alpha)
+    def _dh_transform(self, alpha: float, a: float, theta: float, d: float) -> np.ndarray:
+        """Helper function to calculate the 4x4 transformation matrix for a single link."""
+        cos_t = np.cos(theta)
+        sin_t = np.sin(theta)
+        cos_a = np.cos(alpha)
+        sin_a = np.sin(alpha)
 
         return np.array([
-            [c_theta, -s_theta * c_alpha,  s_theta * s_alpha, a * c_theta],
-            [s_theta,  c_theta * c_alpha, -c_theta * s_alpha, a * s_theta],
-            [0,        s_alpha,            c_alpha,           d],
-            [0,        0,                  0,                 1]
+            [cos_t, -sin_t * cos_a,  sin_t * sin_a, a * cos_t],
+            [sin_t,  cos_t * cos_a, -cos_t * sin_a, a * sin_t],
+            [0,      sin_a,          cos_a,         d        ],
+            [0,      0,              0,             1        ]
         ])
 
-    def get_all_joint_transforms(self, joint_angles: List[float]) -> List[np.ndarray]:
-        """
-        Calculates the transformation matrices for all joints.
-        Returns a list of 4x4 matrices relative to the base.
-        """
-        if len(joint_angles) != len(self.dh_params):
-            raise ValueError(f"Expected {len(self.dh_params)} angles, got {len(joint_angles)}")
+    def forward(self, joint_angles: list[float]) -> Pose:
+        """Given 6 joint angles (degrees), return end effector pose (XYZ + rotation)."""
+        if len(joint_angles) != 6:
+            raise ValueError("Expected exactly 6 joint angles.")
 
-        t_total = np.eye(4)
-        transforms = [t_total.copy()]
+        # 1. Convert input joint angles to radians
+        q = np.radians(joint_angles)
 
-        for angle_deg, (alpha_deg, a, theta_offset_deg, d) in zip(joint_angles, self.dh_params):
-            theta = np.radians(angle_deg + theta_offset_deg)
-            alpha = np.radians(alpha_deg)
+        # 2. Initialize the base transformation matrix as an Identity Matrix
+        T_final = np.eye(4)
+
+        # 3. Iterate through all 6 joints to calculate the forward kinematics
+        for i in range(6):
+            alpha = self.dh_table[i, 0]
+            a = self.dh_table[i, 1]
             
-            t_link = self.get_dh_matrix(theta, d, a, alpha)
-            t_total = t_total @ t_link
-            transforms.append(t_total.copy())
-
-        return transforms
-
-    def forward(self, joint_angles: List[float]) -> Pose:
-        """
-        Calculates the end effector pose given 6 joint angles in degrees.
-        """
-        if len(joint_angles) != len(self.dh_params):
-            raise ValueError(f"Expected {len(self.dh_params)} angles, got {len(joint_angles)}")
-
-        t_total = np.eye(4)
-
-        for angle_deg, (alpha_deg, a, theta_offset_deg, d) in zip(joint_angles, self.dh_params):
-            theta = np.radians(angle_deg + theta_offset_deg)
-            alpha = np.radians(alpha_deg)
+            # Total theta is the static offset + the dynamic joint angle
+            theta = self.dh_table[i, 2] + q[i]
             
-            t_link = self.get_dh_matrix(theta, d, a, alpha)
-            t_total = t_total @ t_link
+            d = self.dh_table[i, 3]
 
-        # Extract position
-        x, y, z = t_total[0:3, 3]
+            # Get the matrix for this specific link
+            T_link = self._dh_transform(alpha, a, theta, d)
 
-        # Extract orientation (Euler angles - Roll, Pitch, Yaw)
-        # Using ZYX convention for yaw-pitch-roll
-        sy = np.sqrt(t_total[0, 0]**2 + t_total[1, 0]**2)
-        singular = sy < 1e-6
+            # Chain the matrices together
+            T_final = T_final @ T_link
 
-        if not singular:
-            roll = np.arctan2(t_total[2, 1], t_total[2, 2])
-            pitch = np.arctan2(-t_total[2, 0], sy)
-            yaw = np.arctan2(t_total[1, 0], t_total[0, 0])
+        # 4. Extract XYZ position (First three rows of the last column)
+        x = T_final[0, 3]
+        y = T_final[1, 3]
+        z = T_final[2, 3]
+
+        # 5. Extract Roll, Pitch, Yaw from the 3x3 rotation matrix
+        # Note: This assumes a standard Z-Y-X rotation sequence (Yaw, Pitch, Roll)
+        pitch = np.arctan2(-T_final[2, 0], np.sqrt(T_final[0, 0]**2 + T_final[1, 0]**2))
+        
+        # Handle potential Gimbal Lock (pitch near +/- 90 degrees)
+        if np.isclose(np.abs(pitch), np.pi / 2):
+            yaw = 0.0
+            roll = np.arctan2(T_final[0, 1], T_final[1, 1])
+            if pitch < 0:
+                roll = -roll
         else:
-            roll = np.arctan2(-t_total[1, 2], t_total[1, 1])
-            pitch = np.arctan2(-t_total[2, 0], sy)
-            yaw = 0
+            yaw = np.arctan2(T_final[1, 0], T_final[0, 0])
+            roll = np.arctan2(T_final[2, 1], T_final[2, 2])
 
+        # Return the Pose, converting angles back to degrees for readability
         return Pose(
-            x=float(x), y=float(y), z=float(z),
-            roll=float(np.degrees(roll)),
-            pitch=float(np.degrees(pitch)),
-            yaw=float(np.degrees(yaw))
+            x=x, 
+            y=y, 
+            z=z,
+            roll=np.degrees(roll),
+            pitch=np.degrees(pitch),
+            yaw=np.degrees(yaw)
         )
 
-    def inverse(self, target_pose: Pose) -> Optional[List[float]]:
-        """
-        Given target pose, return joint angles.
-        TODO: Implement inverse kinematics.
-        """
-        raise NotImplementedError("Inverse kinematics is not yet implemented.")
+# ==========================================
+# Testing the Logic
+# ==========================================
 
-    def is_reachable(self, target_pose: Pose) -> bool:
-        """Check if a pose is within the work envelope."""
-        # Simple placeholder for workspace boundary checking
-        try:
-            angles = self.inverse(target_pose)
-            return angles is not None
-        except NotImplementedError:
-            return True # Assume reachable for now
+robot_dh_parameters = [
+    [  0,       0,   0, 287.87 ],  
+    [-90,  20.174, -90,      0 ],  
+    [  0, 260.986,   0,      0 ],  
+    [  0,  19.219,   0, 260.753],  
+    [ 90,       0,   0,      0 ],  
+    [-90,       0, 180,  74.745]   
+]
+
+robot = Kinematics(robot_dh_parameters)
+
+# Test with the robot in its "Zero" or "Home" position
+home_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+end_effector_pose = robot.forward(home_angles)
+
+print("End Effector Pose at Home Position:")
+print(f"X: {end_effector_pose.x:.3f} mm")
+print(f"Y: {end_effector_pose.y:.3f} mm")
+print(f"Z: {end_effector_pose.z:.3f} mm")
+print(f"Roll: {end_effector_pose.roll:.3f}°")
+print(f"Pitch: {end_effector_pose.pitch:.3f}°")
+print(f"Yaw: {end_effector_pose.yaw:.3f}°")
