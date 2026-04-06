@@ -22,14 +22,14 @@ Reference document for development. Used LLM to compile from the Arctos docs and
 
 ## 2. Joint / Axis Mapping
 
-| Axis | Name       | Joint   | Link       | CAN ID | Driver     | Motor   |
-| ---- | ---------- | ------- | ---------- | ------ | ---------- | ------- |
-| X    | Base       | joint1  | Link_1_1   | 0x01   | MKS 57D    | NEMA 23 |
-| Y    | Shoulder   | joint2  | Link_2_1   | 0x02   | MKS 57D    | NEMA 23 |
-| Z    | Elbow      | joint3  | Link_3_1   | 0x03   | MKS 42D    | NEMA 17 |
-| A    | Wrist 1    | joint4  | Link_4_1   | 0x04   | MKS 42D    | NEMA 17 |
-| B    | Wrist 2    | joint5  | Link_5_1   | 0x05   | MKS 42D    | NEMA 17 |
-| C    | Wrist 3    | joint6  | Link_6_1   | 0x06   | MKS 42D    | NEMA 17 |
+| Axis | Name       | Joint   | Link       | CAN ID | Driver     | Motor            | Torque  | Current |
+| ---- | ---------- | ------- | ---------- | ------ | ---------- | ---------------- | ------- | ------- |
+| X    | Base       | joint1  | Link_1_1   | 0x01   | MKS 57D    | NEMA 23          |         |         |
+| Y    | Shoulder   | joint2  | Link_2_1   | 0x02   | MKS 57D    | NEMA 23          |         |         |
+| Z    | Elbow      | joint3  | Link_3_1   | 0x03   | MKS 42D    | NEMA 17 (60mm)   | 65 Ncm  | 2.1A    |
+| A    | Wrist 1    | joint4  | Link_4_1   | 0x04   | MKS 42D    | NEMA 17 (34mm)   |         | 1.3A    |
+| B    | Wrist 2    | joint5  | Link_5_1   | 0x05   | MKS 42D    | NEMA 17 (23mm)   | 24 Ncm  | 1.2A    |
+| C    | Wrist 3    | joint6  | Link_6_1   | 0x06   | MKS 42D    | NEMA 17 (23mm)   | 24 Ncm  | 1.2A    |
 
 > **Note:** The Arctos specs page lists B-axis as CAN ID 07, but the wiring diagram (more recent) shows 05. This table uses 05 per the wiring diagram — verify on your hardware's OLED display to confirm.
 

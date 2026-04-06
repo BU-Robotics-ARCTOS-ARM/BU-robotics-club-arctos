@@ -5,9 +5,6 @@ description = "BU Robotics Club - Custom Python control software for Arctos"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pytest>=9.0.2",
+    "pyserial>=3.5",
     "python-can",
 ]
-
-[tool.pytest.ini_options]
-pythonpath = ["."]
