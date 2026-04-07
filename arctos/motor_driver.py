@@ -38,6 +38,17 @@ class MotorDriver:
             value += 1 << 24
         return value.to_bytes(3, "big")
 
+    @staticmethod
+    def _decode_int16(data: bytes) -> int:
+        return int.from_bytes(data[:2], "big", signed=True)
+
+    @staticmethod
+    def _decode_int48(data: bytes) -> int:
+        val = int.from_bytes(data[:6], "big")
+        if val >= (1 << 47):
+            val -= 1 << 48
+        return val
+
     # ------------------------------------------------------------------
     # CAN send / receive with CRC
     # ------------------------------------------------------------------
@@ -81,6 +92,43 @@ class MotorDriver:
                 continue  # stale response from a prior command
 
             return payload
+
+    # ------------------------------------------------------------------
+    # Read commands
+    # ------------------------------------------------------------------
+
+    def read_encoder(self) -> int | None:
+        """Read cumulative encoder position (command 0x31).
+
+        Returns the encoder count as a signed 48-bit integer, or None
+        on timeout / CRC mismatch.
+        """
+        resp = self._send_and_receive(bytes([0x31]))
+        if resp is None or len(resp) < 7:
+            return None
+        return self._decode_int48(resp[1:7])
+
+    def read_speed(self) -> int | None:
+        """Read motor speed in RPM (command 0x32).
+
+        Returns signed 16-bit speed, or None on timeout / CRC mismatch.
+        """
+        resp = self._send_and_receive(bytes([0x32]))
+        if resp is None or len(resp) < 3:
+            return None
+        return self._decode_int16(resp[1:3])
+
+    def read_status(self) -> int | None:
+        """Read motor status (command 0xF1).
+
+        Returns status code (0=Fail, 1=Stopped, 2=Accelerating,
+        3=Decelerating, 4=Full speed, 5=Homing, 6=Calibrating),
+        or None on timeout / CRC mismatch.
+        """
+        resp = self._send_and_receive(bytes([0xF1]))
+        if resp is None or len(resp) < 2:
+            return None
+        return resp[1]
 
     # ------------------------------------------------------------------
     # Write commands

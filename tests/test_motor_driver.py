@@ -1,4 +1,4 @@
-"""Tests for arctos.motor_driver.MotorDriver — write commands."""
+"""Tests for arctos.motor_driver.MotorDriver."""
 
 import threading
 
@@ -68,6 +68,124 @@ def test_calc_crc():
 
 def test_calc_crc_wraps_at_256():
     assert MotorDriver.calc_crc(0xFF, bytes([0xFF])) == (0xFF + 0xFF) & 0xFF
+
+
+# ---- _decode_int16 / _decode_int48 ----------------------------------------
+
+
+def test_decode_int16_positive():
+    assert MotorDriver._decode_int16(bytes([0x00, 0x64])) == 100
+
+
+def test_decode_int16_negative():
+    assert MotorDriver._decode_int16(bytes([0xFF, 0x9C])) == -100
+
+
+def test_decode_int16_zero():
+    assert MotorDriver._decode_int16(bytes([0x00, 0x00])) == 0
+
+
+def test_decode_int48_positive():
+    assert (
+        MotorDriver._decode_int48(bytes([0x00, 0x00, 0x00, 0x02, 0x49, 0xF0])) == 150000
+    )
+
+
+def test_decode_int48_negative():
+    val = (-150000 + (1 << 48)).to_bytes(6, "big")
+    assert MotorDriver._decode_int48(val) == -150000
+
+
+def test_decode_int48_zero():
+    assert MotorDriver._decode_int48(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00])) == 0
+
+
+# ---- read_encoder ---------------------------------------------------------
+
+
+def test_read_encoder_positive(can_pair, motor):
+    _, motor_can = can_pair
+    payload = bytes([0x31, 0x00, 0x00, 0x00, 0x02, 0x49, 0xF0])
+    result = _run_with_simulated_response(motor_can, payload, motor.read_encoder)
+    assert result == 150000
+
+
+def test_read_encoder_negative(can_pair, motor):
+    _, motor_can = can_pair
+    enc = (-150000 + (1 << 48)).to_bytes(6, "big")
+    payload = bytes([0x31]) + enc
+    result = _run_with_simulated_response(motor_can, payload, motor.read_encoder)
+    assert result == -150000
+
+
+def test_read_encoder_zero(can_pair, motor):
+    _, motor_can = can_pair
+    payload = bytes([0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+    result = _run_with_simulated_response(motor_can, payload, motor.read_encoder)
+    assert result == 0
+
+
+def test_read_encoder_no_response(motor):
+    assert motor.read_encoder() is None
+
+
+# ---- read_speed -----------------------------------------------------------
+
+
+def test_read_speed_positive(can_pair, motor):
+    _, motor_can = can_pair
+    payload = bytes([0x32, 0x01, 0x2C])  # 300 RPM
+    result = _run_with_simulated_response(motor_can, payload, motor.read_speed)
+    assert result == 300
+
+
+def test_read_speed_negative(can_pair, motor):
+    _, motor_can = can_pair
+    payload = bytes([0x32, 0xFE, 0xD4])  # -300 RPM
+    result = _run_with_simulated_response(motor_can, payload, motor.read_speed)
+    assert result == -300
+
+
+def test_read_speed_zero(can_pair, motor):
+    _, motor_can = can_pair
+    payload = bytes([0x32, 0x00, 0x00])
+    result = _run_with_simulated_response(motor_can, payload, motor.read_speed)
+    assert result == 0
+
+
+def test_read_speed_no_response(motor):
+    assert motor.read_speed() is None
+
+
+# ---- read_status ----------------------------------------------------------
+
+
+def test_read_status_stopped(can_pair, motor):
+    _, motor_can = can_pair
+    result = _run_with_simulated_response(
+        motor_can, bytes([0xF1, 0x01]), motor.read_status
+    )
+    assert result == 1
+
+
+def test_read_status_accelerating(can_pair, motor):
+    _, motor_can = can_pair
+    result = _run_with_simulated_response(
+        motor_can, bytes([0xF1, 0x02]), motor.read_status
+    )
+    assert result == 2
+
+
+def test_read_status_fail(can_pair, motor):
+    _, motor_can = can_pair
+    result = _run_with_simulated_response(
+        motor_can, bytes([0xF1, 0x00]), motor.read_status
+    )
+    assert result == 0
+
+
+def test_read_status_no_response(motor):
+    assert motor.read_status() is None
 
 
 # ---- enable ---------------------------------------------------------------
