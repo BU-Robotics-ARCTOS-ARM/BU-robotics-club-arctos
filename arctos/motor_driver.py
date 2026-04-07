@@ -158,8 +158,7 @@ class MotorDriver:
         resp = self._send_and_receive(bytes([0xF3, val]))
         if resp is None or len(resp) < 2:
             return False
-        expected_status = 1 if enabled else 0
-        return resp[1] == expected_status
+        return resp[1] == 1
 
     def move_to_axis(self, position: int, speed: int, acc: int) -> bool:
         """Absolute axis move (command 0xF5). Returns True if accepted."""
@@ -172,7 +171,7 @@ class MotorDriver:
         resp = self._send_and_receive(data)
         if resp is None or len(resp) < 2:
             return False
-        return resp[1] == 2
+        return resp[1] in (1, 2)
 
     def set_speed(self, direction: int, speed: int, acc: int) -> bool:
         """Speed mode (command 0xF6). Returns True if accepted."""
@@ -181,7 +180,7 @@ class MotorDriver:
         resp = self._send_and_receive(data)
         if resp is None or len(resp) < 2:
             return False
-        return resp[1] == 2
+        return resp[1] in (1, 2)
 
     def stop(self, acc: int = 0) -> bool:
         """Stop motor via speed mode with speed=0 (command 0xF6).
@@ -192,7 +191,7 @@ class MotorDriver:
         resp = self._send_and_receive(data)
         if resp is None or len(resp) < 2:
             return False
-        return resp[1] == 2
+        return resp[1] in (1, 2)
 
     def emergency_stop(self) -> bool:
         """Emergency stop (command 0xF7). Returns True if confirmed."""
