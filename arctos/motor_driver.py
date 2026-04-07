@@ -19,6 +19,10 @@ class MotorDriver:
         self._can = can
         self._can_id = can_id
 
+    @property
+    def can_id(self) -> int:
+        return self._can_id
+
     # ------------------------------------------------------------------
     # Utilities
     # ------------------------------------------------------------------
@@ -41,6 +45,10 @@ class MotorDriver:
     @staticmethod
     def _decode_int16(data: bytes) -> int:
         return int.from_bytes(data[:2], "big", signed=True)
+
+    @staticmethod
+    def _decode_int32(data: bytes) -> int:
+        return int.from_bytes(data[:4], "big", signed=True)
 
     @staticmethod
     def _decode_int48(data: bytes) -> int:
@@ -92,6 +100,16 @@ class MotorDriver:
                 continue  # stale response from a prior command
 
             return payload
+
+    def raw_command(self, data: bytes, timeout: float = 1.0) -> bytes | None:
+        """Send a raw command frame and wait for the response.
+
+        Convenience method for commands not yet wrapped in a dedicated
+        method.  *data* should NOT include the CRC byte — it is appended
+        automatically.  Returns the response payload (without CRC), or
+        None on timeout / CRC mismatch.
+        """
+        return self._send_and_receive(data, timeout)
 
     # ------------------------------------------------------------------
     # Read commands
