@@ -202,7 +202,7 @@ def test_enable_on(can_pair, motor):
 def test_enable_off(can_pair, motor):
     _, motor_can = can_pair
     result = _run_with_simulated_response(
-        motor_can, bytes([0xF3, 0x00]), lambda: motor.enable(False)
+        motor_can, bytes([0xF3, 0x01]), lambda: motor.enable(False)
     )
     assert result is True
 

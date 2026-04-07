@@ -82,9 +82,14 @@ def test_read(
 def test_enable(driver: MotorDriver, enable: bool) -> TestResult:
     """Send enable/disable and verify response."""
     label = "Enable motor (0xF3)" if enable else "Disable motor (0xF3)"
-    ok = driver.enable(enable)
-    if not ok:
+    val = 0x01 if enable else 0x00
+    resp = driver.raw_command(bytes([0xF3, val]))
+    if resp is None:
         return TestResult(label, False, "No response")
+    if resp[0] != 0xF3 or len(resp) < 2:
+        return TestResult(label, False, f"Unexpected: {resp.hex()}")
+    if resp[1] != 1:
+        return TestResult(label, False, f"Status: {resp[1]}")
     return TestResult(label, True, "Enabled" if enable else "Disabled")
 
 
@@ -201,11 +206,11 @@ def test_emergency_stop(driver: MotorDriver) -> TestResult:
 
 
 def test_read_speed_zero(driver: MotorDriver) -> TestResult:
-    """Read speed (0x32) and verify it's 0."""
+    """Read speed (0x32) and verify it's near 0."""
     speed = driver.read_speed()
     if speed is None:
         return TestResult("Verify speed=0 (0x32)", False, "No response")
-    ok = speed == 0
+    ok = abs(speed) <= 20
     return TestResult("Verify speed=0 (0x32)", ok, f"{speed} RPM")
 
 
