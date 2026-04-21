@@ -242,7 +242,7 @@ _TEST_NAMES = [
     "Speed mode dir=0 spd=50 (0xF6)",
     "Emergency stop (0xF7)",
     "Verify speed=0 (0x32)",
-    "Disable motor (0xF3)",
+    "Enable motor (0xF3)", 
 ]
 
 
@@ -282,8 +282,8 @@ def test_motor_gen(driver: MotorDriver):
     time.sleep(1.0)
     yield test_read_speed_zero(driver)
 
-    # Phase 4: Cleanup
-    yield test_enable(driver, False)
+    # Phase 4: Cleanup re-enable motor so it's ready for use after the test
+    yield test_enable(driver, True)
 
 
 def run_motor_tests(driver: MotorDriver, label: str) -> list[TestResult]:
