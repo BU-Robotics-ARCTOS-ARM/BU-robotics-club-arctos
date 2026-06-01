@@ -56,6 +56,7 @@ For dev setup instructions, see **[DEV_QUICKSTART.md](docs/DEV_QUICKSTART.md)**.
 | --- | -------------- |
 | [DEV_QUICKSTART.md](docs/DEV_QUICKSTART.md) | Environment setup, dependencies, editor configuration |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Software layers, folder structure, data flow |
+| [KINEMATICS.md](docs/KINEMATICS.md) | Kinematics functions, IK workflow, solution filtering, limitations |
 | [arctos_arm_specifications.md](docs/arctos_arm_specifications.md) | Hardware reference — CAN commands, gear ratios, DH parameters, wiring |
 | [CONTRIBUTING.md](docs/CONTRIBUTING.md) | Git workflow, code style, pull requests, testing |
 | [TODO Board](https://github.com/orgs/BU-Robotics-ARCTOS-ARM/projects/4) | Task board — claim a task and get building |
